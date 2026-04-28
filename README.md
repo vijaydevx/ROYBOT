@@ -2,6 +2,8 @@
 
 ROYBOT is a high-performance, self-balancing surveillance robot featuring a real-time tactical dashboard. It combines embedded systems (ESP32), computer vision (ESP32-CAM), and a modern web stack to provide a seamless remote operation experience.
 
+**🌐 Live Dashboard:** [https://vijaydevx.github.io/ROYBOT/](https://vijaydevx.github.io/ROYBOT/)
+
 ![ROYBOT Dashboard Preview](https://via.placeholder.com/1200x600.png?text=ROYBOT+Tactical+Dashboard+Preview)
 
 ## 🚀 Features
