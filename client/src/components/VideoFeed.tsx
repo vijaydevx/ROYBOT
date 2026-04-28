@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Camera, Maximize2, Minimize2, RefreshCw, WifiOff, ExternalLink, Settings, X, Scan, ScanEye, Download } from "lucide-react";
+import { Camera, Maximize2, Minimize2, RefreshCw, WifiOff, ExternalLink, Settings, X, Scan, ScanEye, Download, Zap } from "lucide-react";
 import { useObjectDetection, Detection } from "@/hooks/useObjectDetection";
 import { getSocket } from "@/lib/socket";
 
@@ -175,6 +175,7 @@ export function VideoFeed() {
   const [resolution, setResolution] = useState("");
   const [detectEnabled, setDetectEnabled] = useState(false);
   const [humanCaptures, setHumanCaptures] = useState<{ url: string; time: string; count: number }[]>([]);
+  const [flashOn, setFlashOn] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
@@ -213,11 +214,30 @@ export function VideoFeed() {
     onHumanDetected,
   });
 
+  const toggleFlash = useCallback(async () => {
+    try {
+      const newState = !flashOn;
+      // Use the proxied backend endpoint /api/led
+      const res = await fetch(`/api/led?state=${newState ? "on" : "off"}`);
+      if (res.ok) setFlashOn(newState);
+    } catch {}
+  }, [flashOn]);
+
   useEffect(() => {
     const f = async () => {
-      try { const r = await fetch("/api/camera-info"); if (r.ok) { const i = await r.json(); setCameraInfo(i); setStreamSrc(i.streamUrl); } } catch {}
+      try {
+        const r = await fetch("/api/camera-info");
+        if (r.ok) {
+          const i = await r.json();
+          setCameraInfo(i);
+          // Connect directly to the camera for zero-latency direct streaming
+          setStreamSrc(`${i.directUrl}/stream?t=${Date.now()}`);
+        }
+      } catch {}
     };
-    f(); const iv = setInterval(f, 10000); return () => clearInterval(iv);
+    f();
+    const iv = setInterval(f, 15000);
+    return () => clearInterval(iv);
   }, []);
 
   const onLoad = useCallback(() => {
@@ -232,19 +252,22 @@ export function VideoFeed() {
   }, [fullscreen]);
 
   const snap = useCallback(async () => {
-    if (!cameraInfo) return;
     try {
-      let r = await fetch(cameraInfo.captureUrl); if (!r.ok) r = await fetch("/api/capture"); if (!r.ok) return;
+      const r = await fetch("/api/capture"); 
+      if (!r.ok) return;
       const b = await r.blob(); const u = URL.createObjectURL(b);
       setScreenshots(p => [u, ...p.slice(0, 9)]);
       const a = document.createElement("a"); a.href = u; a.download = `roybot-${Date.now()}.jpg`; a.click();
     } catch {}
-  }, [cameraInfo]);
+  }, []);
 
   const retry = useCallback(() => {
-    setStreamError(false); setStreamLoaded(false); setResolution(""); setRetryKey(k => k + 1);
-    if (cameraInfo) setStreamSrc(streamSrc === cameraInfo.streamUrl ? `http://${new URL(cameraInfo.streamUrl).hostname}:81/` : cameraInfo.streamUrl);
-  }, [cameraInfo, streamSrc]);
+    setStreamError(false); 
+    setStreamLoaded(false); 
+    setResolution(""); 
+    setRetryKey(k => k + 1);
+    if (cameraInfo) setStreamSrc(`${cameraInfo.directUrl}/stream?t=${Date.now()}`);
+  }, []);
 
   const downloadCapture = useCallback((url: string) => {
     const a = document.createElement("a"); a.href = url; a.download = `roybot-human-${Date.now()}.jpg`; a.click();
@@ -252,15 +275,15 @@ export function VideoFeed() {
 
   return (
     <>
-      <div className="glass-card p-3 h-full flex flex-col overflow-hidden">
+      <div className="glass-card p-4 h-full flex flex-col overflow-hidden bg-s-card border-s-border relative">
         {/* Header */}
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <h3 className="text-xs font-bold text-s-text">Live Camera</h3>
-            {resolution && <span className="text-[9px] font-mono font-semibold text-s-blue bg-s-blue-light px-1.5 py-0.5 rounded-full">{resolution}</span>}
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-3">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-s-highlight font-mono">Camera Feed</h3>
+            {resolution && <span className="text-[9px] font-mono font-semibold text-s-highlight bg-s-highlight/10 px-1.5 py-0.5 rounded-full border border-s-highlight/20">{resolution}</span>}
             {detectEnabled && (
               <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-1 ${
-                modelLoaded ? "bg-s-green-light text-s-green" : "bg-s-amber-light text-s-amber"
+                modelLoaded ? "bg-s-accent/10 text-s-accent" : "bg-s-highlight/10 text-s-highlight"
               }`}>
                 <ScanEye size={9} />
                 {loading ? "Loading AI..." : modelLoaded ? "AI Active" : "AI Off"}
@@ -269,8 +292,8 @@ export function VideoFeed() {
           </div>
           <div className="flex items-center gap-1.5">
             {streamLoaded && (
-              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-s-green-light text-s-green text-[10px] font-semibold">
-                <span className="w-1.5 h-1.5 rounded-full bg-s-green animate-pulse" /> Live
+              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-s-highlight/10 text-s-highlight text-[10px] font-semibold border border-s-highlight/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-s-highlight animate-pulse" /> Live
               </span>
             )}
             {cameraInfo && (
@@ -283,7 +306,7 @@ export function VideoFeed() {
         </div>
 
         {/* Stream container */}
-        <div ref={containerRef} className="relative rounded-xl overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200 flex-1 min-h-0">
+        <div ref={containerRef} className="relative rounded-xl overflow-hidden bg-gradient-to-br from-s-sidebar to-s-bg flex-1 min-h-0 border border-white/5">
           {/* Video stream */}
           {streamSrc && !streamError && (
             <img ref={imgRef} key={`${retryKey}-${streamSrc}`} src={streamSrc} alt="Live"
@@ -315,8 +338,8 @@ export function VideoFeed() {
           {streamLoaded && (
             <>
               {/* LIVE badge */}
-              <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-md bg-black/50 backdrop-blur-sm z-10">
-                <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+              <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-md bg-s-sidebar/60 backdrop-blur-sm z-10 border border-white/10">
+                <span className="w-1.5 h-1.5 rounded-full bg-s-accent animate-pulse" />
                 <span className="text-[9px] font-bold text-white tracking-wider">LIVE</span>
               </div>
 
@@ -327,21 +350,25 @@ export function VideoFeed() {
               <div className="absolute bottom-2 right-2 flex gap-1 z-10">
                 {/* AI Detection toggle */}
                 <button onClick={() => setDetectEnabled(!detectEnabled)}
-                  className={`p-1.5 rounded-lg backdrop-blur-sm shadow-sm transition-all ${
+                  className={`p-1.5 rounded-lg backdrop-blur-md shadow-lg transition-all border ${
                     detectEnabled
-                      ? "bg-s-red text-white shadow-[0_0_10px_rgba(239,68,68,0.4)]"
-                      : "bg-white/80 text-s-text-secondary hover:text-s-text"
+                      ? "bg-s-accent text-white border-s-accent shadow-[0_0_15px_rgba(220,112,73,0.4)]"
+                      : "bg-s-sidebar/80 text-s-text-muted border-white/10 hover:text-white"
                   }`} title={detectEnabled ? "Disable AI Detection" : "Enable AI Detection"}>
                   <Scan size={14} />
                 </button>
+                <button onClick={toggleFlash}
+                  className={`p-1.5 rounded-lg backdrop-blur-md shadow-lg transition-all border ${flashOn ? "bg-s-highlight text-s-sidebar border-s-highlight shadow-[0_0_15px_rgba(235,184,101,0.4)]" : "bg-s-sidebar/80 border-white/10 text-s-text-muted"}`} title="Flash">
+                  <Zap size={14} fill={flashOn ? "currentColor" : "none"} />
+                </button>
                 <button onClick={() => setShowSettings(!showSettings)}
-                  className={`p-1.5 rounded-lg backdrop-blur-sm shadow-sm transition-all ${showSettings ? "bg-s-blue text-white" : "bg-white/80 text-s-text-secondary hover:text-s-text"}`} title="Settings">
+                  className={`p-1.5 rounded-lg backdrop-blur-md shadow-lg transition-all border ${showSettings ? "bg-s-muted text-white border-white/20" : "bg-s-sidebar/80 border-white/10 text-s-text-muted"}`} title="Settings">
                   <Settings size={14} />
                 </button>
-                <button onClick={snap} className="p-1.5 rounded-lg bg-white/80 backdrop-blur-sm shadow-sm text-s-text-secondary hover:text-s-text transition-all" title="Screenshot">
+                <button onClick={snap} className="p-1.5 rounded-lg bg-s-sidebar/80 border border-white/10 backdrop-blur-md shadow-lg text-s-text-muted hover:text-white transition-all" title="Screenshot">
                   <Camera size={14} />
                 </button>
-                <button onClick={toggleFs} className="p-1.5 rounded-lg bg-white/80 backdrop-blur-sm shadow-sm text-s-text-secondary hover:text-s-text transition-all" title="Fullscreen">
+                <button onClick={toggleFs} className="p-1.5 rounded-lg bg-s-sidebar/80 border border-white/10 backdrop-blur-md shadow-lg text-s-text-muted hover:text-white transition-all" title="Fullscreen">
                   {fullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
                 </button>
               </div>
@@ -353,10 +380,10 @@ export function VideoFeed() {
 
           {/* AI Loading overlay */}
           {detectEnabled && loading && (
-            <div className="absolute inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-30 animate-fade-in">
-              <div className="bg-white rounded-2xl px-6 py-4 shadow-lg flex flex-col items-center gap-2">
-                <div className="w-8 h-8 border-3 border-s-blue border-t-transparent rounded-full animate-spin" />
-                <span className="text-xs font-semibold text-s-text">Loading AI Model...</span>
+            <div className="absolute inset-0 bg-s-bg/40 backdrop-blur-sm flex items-center justify-center z-30 animate-fade-in">
+              <div className="bg-s-sidebar rounded-2xl px-6 py-4 shadow-2xl border border-white/10 flex flex-col items-center gap-2">
+                <div className="w-8 h-8 border-3 border-s-highlight border-t-transparent rounded-full animate-spin" />
+                <span className="text-xs font-semibold text-white">Loading AI Model...</span>
                 <span className="text-[10px] text-s-text-muted">COCO-SSD (~6MB)</span>
               </div>
             </div>

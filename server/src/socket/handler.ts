@@ -13,6 +13,7 @@ export function setupSocketHandlers(io: Server, esp32: Esp32Service, poller: Pol
     if (poller.lastAlerts.length > 0) {
       socket.emit("alerts", poller.lastAlerts);
     }
+    poller.emitConnectionStatus(socket);
 
     socket.on("command", async (cmd: string) => {
       try {

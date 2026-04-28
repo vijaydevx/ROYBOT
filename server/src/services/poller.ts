@@ -1,4 +1,4 @@
-import { Server } from "socket.io";
+import { Server, Socket } from "socket.io";
 import { Esp32Service } from "./esp32.service";
 import { SensorData, Alert, ConnectionStatus } from "../types";
 import { config } from "../config";
@@ -7,8 +7,8 @@ export class Poller {
   private timeout: ReturnType<typeof setTimeout> | null = null;
   private tick = 0;
   private lastAlertCount = 0;
-  private connected = false;
-  private cameraConnected = false;
+  public connected = false;
+  public cameraConnected = false;
   private backoffMs: number;
 
   public lastSensorData: SensorData | null = null;
@@ -93,11 +93,16 @@ export class Poller {
     }
   }
 
-  private emitConnectionStatus() {
+  public emitConnectionStatus(socket?: Socket) {
     const status: ConnectionStatus = {
       esp32: this.connected,
       camera: this.cameraConnected,
     };
-    this.io.emit("connectionStatus", status);
+    console.log(`[Poller] Emitting connectionStatus: esp32=${status.esp32}, camera=${status.camera} (target: ${socket ? socket.id : 'ALL'})`);
+    if (socket) {
+      socket.emit("connectionStatus", status);
+    } else {
+      this.io.emit("connectionStatus", status);
+    }
   }
 }

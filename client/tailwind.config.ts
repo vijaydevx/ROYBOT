@@ -6,28 +6,23 @@ const config: Config = {
     extend: {
       colors: {
         s: {
-          bg: "#F8FAFC",
-          "bg-alt": "#EEF2F7",
-          card: "rgba(255, 255, 255, 0.72)",
-          "card-solid": "#FFFFFF",
-          border: "rgba(0, 0, 0, 0.06)",
-          "border-strong": "rgba(0, 0, 0, 0.10)",
-          blue: "#3B82F6",
-          "blue-light": "#DBEAFE",
-          purple: "#8B5CF6",
-          "purple-light": "#EDE9FE",
-          teal: "#14B8A6",
-          "teal-light": "#CCFBF1",
-          green: "#22C55E",
-          "green-light": "#DCFCE7",
-          red: "#EF4444",
-          "red-light": "#FEE2E2",
-          amber: "#F59E0B",
-          "amber-light": "#FEF3C7",
-          text: "#0F172A",
-          "text-secondary": "#475569",
-          "text-muted": "#94A3B8",
-          sidebar: "rgba(255, 255, 255, 0.85)",
+          bg: "#313967",         // Deep Navy
+          sidebar: "#4D1D46",    // Deep Purple/Plum
+          card: "rgba(53, 80, 110, 0.7)", // Muted Slate Blue (translucent)
+          "card-solid": "#35506E", 
+          border: "rgba(235, 184, 101, 0.1)", // Mustard border (faint)
+          "border-strong": "rgba(235, 184, 101, 0.2)",
+          accent: "#DC7049",     // Muted Orange
+          highlight: "#EBB865",  // Mustard/Yellow
+          muted: "#563060",      // Lighter Purple
+          danger: "#8F5050",     // Muted Rose
+          text: "#FFFFFF",
+          "text-secondary": "#EBB865",
+          "text-muted": "rgba(255, 255, 255, 0.5)",
+          blue: "#35506E",
+          "blue-light": "rgba(53, 80, 110, 0.2)",
+          purple: "#563060",
+          "purple-light": "rgba(86, 48, 96, 0.2)",
         },
       },
       fontFamily: {
@@ -39,19 +34,19 @@ const config: Config = {
         "3xl": "20px",
       },
       boxShadow: {
-        glass: "0 8px 32px rgba(0, 0, 0, 0.06)",
-        "glass-lg": "0 12px 48px rgba(0, 0, 0, 0.08)",
-        "glass-sm": "0 2px 12px rgba(0, 0, 0, 0.04)",
-        float: "0 20px 60px rgba(0, 0, 0, 0.08)",
-        glow: "0 0 20px rgba(59, 130, 246, 0.15)",
-        "glow-teal": "0 0 20px rgba(20, 184, 166, 0.15)",
-        "glow-purple": "0 0 20px rgba(139, 92, 246, 0.15)",
+        glass: "0 8px 32px rgba(0, 0, 0, 0.2)",
+        "glass-lg": "0 12px 48px rgba(0, 0, 0, 0.3)",
+        "glass-sm": "0 2px 12px rgba(0, 0, 0, 0.1)",
+        float: "0 20px 60px rgba(0, 0, 0, 0.4)",
+        glow: "0 0 20px rgba(235, 184, 101, 0.15)",
+        "glow-accent": "0 0 20px rgba(220, 112, 73, 0.15)",
+        "glow-purple": "0 0 20px rgba(86, 48, 96, 0.15)",
       },
       backgroundImage: {
-        "gradient-main": "linear-gradient(135deg, #F8FAFC 0%, #EEF2F7 100%)",
-        "gradient-accent": "linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%)",
-        "gradient-teal": "linear-gradient(135deg, #14B8A6 0%, #3B82F6 100%)",
-        "gradient-card": "linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.6) 100%)",
+        "gradient-main": "linear-gradient(135deg, #313967 0%, #2A305A 100%)",
+        "gradient-accent": "linear-gradient(135deg, #DC7049 0%, #8F5050 100%)",
+        "gradient-mustard": "linear-gradient(135deg, #EBB865 0%, #D4A354 100%)",
+        "gradient-card": "linear-gradient(135deg, rgba(53, 80, 110, 0.4) 0%, rgba(53, 80, 110, 0.1) 100%)",
       },
       animation: {
         "pulse-soft": "pulse-soft 2s ease-in-out infinite",

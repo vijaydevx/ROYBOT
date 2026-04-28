@@ -1,5 +1,5 @@
 /*
- * SentinelBot - Self-Balancing Surveillance Robot
+ * ROYBOT - Self-Balancing Surveillance Robot
  * Main ESP32 Firmware
  *
  * Pins:
@@ -16,10 +16,10 @@
  *   GET /api/alerts    - JSON array of alert strings
  *   GET /               - Embedded HTML dashboard
  *
- * WiFi AP: SentinelBot / robot1234
+ * WiFi AP: ROYBOT_AP / robot1234
  * IP: 192.168.4.1
  */
 
-// See SentinelBot_Main.txt for full source code
+// See ROYBOT_Hardware_Requirements.txt for full source code
 // Upload this to the main ESP32 board using Arduino IDE
 // Board: "ESP32 Dev Module"

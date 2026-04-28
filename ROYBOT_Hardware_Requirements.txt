@@ -1,0 +1,83 @@
+# ROYBOT Project Context for AI Coding Assistants
+
+This document contains everything an AI needs to know to generate or modify the C++ firmware (Arduino code) for the "ROYBOT" project.
+
+## 1. Project Overview
+ROYBOT is a self-balancing surveillance robot. It uses two microcontrollers:
+1. **ESP32 (Main Board)**: Handles balancing logic (PID), sensor readings (MPU6050, HC-SR04), motor control (BTS7960), and acts as a localized JSON web API server.
+2. **ESP32-CAM**: Handles video stream (OV2640). It connects to the WiFi Access Point created by the main board.
+
+## 2. Main ESP32 Hardware & Pinouts
+- **MPU6050 (Gyro/Accel)**: SDA = GPIO21, SCL = GPIO22
+- **HC-SR04P (Ultrasonic sonar)**: TRIG = GPIO5, ECHO = GPIO18
+- **BTS7960 (Motor Driver)**: RPWM = GPIO25, LPWM = GPIO26, R_EN = GPIO32, L_EN = GPIO33
+- **Buzzer**: GPIO19
+- **RGB/Status LEDs**: RED = GPIO13, YELLOW = GPIO14, GREEN = GPIO27
+
+## 3. Main ESP32 Network Requirements
+- **WiFi Role**: Must act as an Access Point (AP).
+- **SSID**: `ROYBOT_AP`
+- **Password**: `robot1234`
+- **IP Address**: Should ideally default to `192.168.4.1`.
+- **Web Server**: Must run an HTTP server on port 80.
+
+## 4. Main ESP32 HTTP API Endpoints
+The Node.js proxy backend constantly polls these exact endpoints. They MUST be implemented and return the specified JSON shapes.
+
+### `GET /api/status`
+Returns the current state of the robot. Must return JSON in this exact shape:
+```json
+{
+  "angle": 2.5,
+  "distance": 120,
+  "pidOutput": 25.4,
+  "obstacle": false,
+  "fallen": false,
+  "mode": "manual",
+  "command": "forward",
+  "uptime": 1205,
+  "kp": 20.5,
+  "ki": 0.5,
+  "kd": 1.2
+}
+```
+
+### `GET /api/command?cmd=<value>`
+Receives movement/mode commands from the user dashboard.
+- Param `cmd` values: `forward`, `backward`, `left`, `right`, `stop`, `auto`, `manual`.
+- Action: Update internal state to drive motors or toggle auto-roaming.
+- Returns: HTTP 200 OK.
+
+### `GET /api/pid?kp=<float>&ki=<float>&kd=<float>`
+Receives PID tuning configurations from the dashboard in real-time.
+- Action: Update internal PID variables.
+- Returns: HTTP 200 OK.
+
+### `GET /api/alerts`
+Returns a JSON array of strings containing log/alert messages.
+- The Node.js backend expects strings formatted optionally with a timestamp suffix, e.g., `"12.5s: Obstacle Avoided"` or `"Calibrating MPU..."`.
+- If the string contains "obstacle" or "fallen", the UI treats it as danger/red. If it contains "calibrat" or "warning", it treats it as a warning/yellow.
+- Example Return:
+```json
+[
+  "10.2s: Booted successfully",
+  "12.5s: Calibrating MPU6050...",
+  "150.1s: Obstacle detected!"
+]
+```
+
+## 5. ESP32-CAM Requirements
+- **WiFi**: Connects to the `ROYBOT_AP` / `robot1234` network created by the Main ESP32.
+- **Web Server**: 
+  - Must serve MJPEG video stream on `http://<cam_ip>:81/stream`.
+  - Must serve a single JPEG capture on `http://<cam_ip>/capture`.
+  - Must serve a dummy status on `http://<cam_ip>/status` that returns a 200 OK (e.g. `{"streaming": true}`) so the backend knows the camera is alive.
+  - Flash LED toggle (Optional, `GET /flash?state=on|off`).
+
+## 6. Logic & Features to Implement (Instructions for AI)
+When generating the C++ code, ensure you:
+- Implement a robust PID control loop running rapidly to balance the robot using the MPU6050 DMP (or raw accel/gyro fusion).
+- Implement motor logic for the BTS7960 to convert PID output into left/right PWM mixing for balancing AND steering (when command = left/right).
+- In `auto` mode, write simple logic using the HC-SR04 to trigger an obstacle alert and reverse/turn away when distance is < 20cm.
+- In `manual` mode, drive forward/backward by slightly biasing the PID target angle.
+- Put both files into standard `.ino` Arduino formats.

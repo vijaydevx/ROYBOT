@@ -54,7 +54,8 @@ export class Esp32Service {
   }
 
   getStreamUrl(): string {
-    return `http://${this._camIp}:81/stream`;
+    if (this._camIp.includes(":")) return `http://${this._camIp}/stream`;
+    return `http://${this._camIp}/stream`;
   }
 
   getCaptureUrl(): string {
@@ -74,7 +75,7 @@ export class Esp32Service {
   async checkCameraConnection(): Promise<boolean> {
     if (!this._camIp) return false;
     try {
-      // Try /status (works with both default and custom ESP32-CAM firmware)
+      // Try /status or /api/status
       await this.camClient.get("/status", { timeout: 2000 });
       return true;
     } catch {

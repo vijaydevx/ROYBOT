@@ -51,14 +51,20 @@ app.post("/api/config", (req, res) => {
     return;
   }
   // Strip http:// prefix if user included it
-  const cleanIp = (ip: string) => ip.trim().replace(/^https?:\/\//, "").replace(/\/+$/, "");
+  const cleanIp = (ip: string) => ip.trim().replace(/^https?:\/\//, "").split('/')[0];
   esp32.setIps(cleanIp(esp32Ip), cleanIp(camIp || esp32Ip));
   poller.stop();
   poller.start();
   res.json({ ok: true, esp32Ip: esp32.esp32Ip, camIp: esp32.camIp });
 });
 
+app.delete("/api/config", (_req, res) => {
+  esp32.setIps("192.168.4.1", "192.168.4.2");
+  poller.stop();
+  res.json({ ok: true });
+});
+
 server.listen(config.port, () => {
-  console.log(`SentinelBot server running on port ${config.port}`);
+  console.log(`ROYBOT server running on port ${config.port}`);
   console.log("Waiting for ESP32 IP configuration from dashboard...");
 });

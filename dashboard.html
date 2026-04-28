@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>ROYBOT Dashboard</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:       #0d0f14;
+    --surface:  #161a23;
+    --border:   #252b3a;
+    --accent:   #3b82f6;
+    --green:    #22c55e;
+    --amber:    #f59e0b;
+    --red:      #ef4444;
+    --text:     #e2e8f0;
+    --muted:    #64748b;
+    --radius:   10px;
+    --font:     system-ui, -apple-system, sans-serif;
+  }
+
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: var(--font); font-size: 14px;
+    min-height: 100vh; overflow-x: hidden;
+  }
+
+  header {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 12px 20px; display: flex; align-items: center; gap: 12px;
+  }
+  header h1 { font-size: 16px; font-weight: 600; letter-spacing: .5px; }
+  #status-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--red); transition: background .3s;
+  }
+  #status-dot.connected { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  #status-label { color: var(--muted); font-size: 12px; margin-left: 4px; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto;
+    gap: 12px; padding: 16px;
+    max-width: 900px; margin: 0 auto;
+  }
+
+  @media (max-width: 600px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 16px;
+  }
+  .card h2 { font-size: 12px; font-weight: 500; color: var(--muted);
+    text-transform: uppercase; letter-spacing: .6px; margin-bottom: 12px; }
+
+  /* ── Angle gauge ── */
+  #gauge-wrap { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  #angle-gauge { width: 160px; height: 80px; }
+  #angle-value { font-size: 32px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  #angle-unit  { font-size: 12px; color: var(--muted); }
+
+  /* ── Stats row ── */
+  .stats { display: flex; gap: 12px; flex-wrap: wrap; }
+  .stat  { flex: 1; min-width: 80px; background: var(--bg);
+    border-radius: 8px; padding: 10px 12px; }
+  .stat-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+  .stat-val   { font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  /* ── Camera ── */
+  #cam-wrap { position: relative; background: #000;
+    border-radius: 8px; overflow: hidden; aspect-ratio: 4/3; }
+  #cam-img  { width: 100%; height: 100%; object-fit: cover; display: block; }
+  #cam-overlay { position: absolute; inset: 0; display: flex; align-items: center;
+    justify-content: center; background: rgba(0,0,0,.5);
+    font-size: 12px; color: var(--muted); }
+  #cam-btns { display: flex; gap: 8px; margin-top: 8px; }
+  .cam-btn  { flex: 1; padding: 7px; background: var(--bg); border: 1px solid var(--border);
+    border-radius: 6px; color: var(--text); cursor: pointer; font-size: 12px;
+    transition: background .15s; }
+  .cam-btn:hover { background: var(--border); }
+
+  /* ── Joystick ── */
+  #joystick-area {
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+  }
+  #joystick-zone {
+    width: 160px; height: 160px; border-radius: 50%;
+    background: var(--bg); border: 2px solid var(--border);
+    position: relative; cursor: grab; touch-action: none; user-select: none;
+  }
+  #joystick-zone:active { cursor: grabbing; }
+  #stick {
+    width: 56px; height: 56px; border-radius: 50%;
+    background: var(--accent); opacity: .85;
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    transition: background .1s; pointer-events: none;
+  }
+  #dir-label { font-size: 13px; color: var(--muted); min-height: 18px; }
+
+  /* Mode buttons */
+  .mode-btns { display: flex; gap: 8px; width: 100%; }
+  .mode-btn  {
+    flex: 1; padding: 9px; border-radius: 6px;
+    border: 1px solid var(--border); background: var(--bg);
+    color: var(--text); cursor: pointer; font-size: 13px; font-weight: 500;
+    transition: background .15s, border-color .15s;
+  }
+  .mode-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  /* ── PID sliders ── */
+  .pid-row { display: flex; flex-direction: column; gap: 10px; }
+  .pid-item { display: flex; align-items: center; gap: 10px; }
+  .pid-label { width: 22px; font-size: 13px; font-weight: 600; color: var(--accent); }
+  .pid-slider { flex: 1; accent-color: var(--accent); cursor: pointer; }
+  .pid-val { width: 46px; text-align: right; font-size: 13px;
+    font-variant-numeric: tabular-nums; color: var(--text); }
+  .pid-send { padding: 7px 14px; background: var(--accent); border: none;
+    border-radius: 6px; color: #fff; cursor: pointer; font-size: 13px;
+    margin-top: 4px; width: 100%; transition: opacity .15s; }
+  .pid-send:hover { opacity: .85; }
+
+  /* ── Alerts ── */
+  #alert-list { max-height: 160px; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 4px; }
+  .alert-item { padding: 5px 8px; border-radius: 5px;
+    font-size: 12px; background: var(--bg); border-left: 3px solid var(--muted); }
+  .alert-item.danger  { border-left-color: var(--red);   color: #fca5a5; }
+  .alert-item.warning { border-left-color: var(--amber); color: #fcd34d; }
+  .alert-item.info    { border-left-color: var(--accent); }
+
+  /* span-2 */
+  .span2 { grid-column: span 2; }
+  @media (max-width: 600px) { .span2 { grid-column: span 1; } }
+
+  /* Connection bar */
+  #conn-bar { padding: 6px 20px; font-size: 12px; color: var(--muted);
+    background: var(--surface); border-bottom: 1px solid var(--border); }
+</style>
+</head>
+<body>
+
+<header>
+  <div id="status-dot"></div>
+  <h1>ROYBOT</h1>
+  <span id="status-label">Connecting…</span>
+</header>
+<div id="conn-bar">
+  API: <span id="api-url">http://192.168.4.1</span> &nbsp;|&nbsp;
+  Cam: <span id="cam-url">waiting…</span>
+</div>
+
+<div class="grid">
+
+  <!-- Angle gauge -->
+  <div class="card">
+    <h2>Tilt angle</h2>
+    <div id="gauge-wrap">
+      <svg id="angle-gauge" viewBox="0 0 160 90">
+        <path d="M10 80 A70 70 0 0 1 150 80" fill="none" stroke="#252b3a" stroke-width="10" stroke-linecap="round"/>
+        <path id="gauge-arc" d="M10 80 A70 70 0 0 1 150 80" fill="none"
+          stroke="#3b82f6" stroke-width="10" stroke-linecap="round"
+          stroke-dasharray="220" stroke-dashoffset="110"/>
+        <line id="needle" x1="80" y1="80" x2="80" y2="16"
+          stroke="#e2e8f0" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="80" cy="80" r="5" fill="#3b82f6"/>
+        <text x="10" y="90" fill="#64748b" font-size="9">-45°</text>
+        <text x="140" y="90" fill="#64748b" font-size="9" text-anchor="end">+45°</text>
+      </svg>
+      <div>
+        <span id="angle-value">0.00</span>
+        <span id="angle-unit">°</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="card">
+    <h2>Telemetry</h2>
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-label">PID output</div>
+        <div class="stat-val" id="pid-out">—</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Distance</div>
+        <div class="stat-val" id="dist-val">—</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Mode</div>
+        <div class="stat-val" id="mode-val">—</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Uptime</div>
+        <div class="stat-val" id="uptime-val">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Camera -->
+  <div class="card">
+    <h2>Camera</h2>
+    <div id="cam-wrap">
+      <img id="cam-img" alt="stream" style="display:none">
+      <div id="cam-overlay">No camera connected</div>
+    </div>
+    <div id="cam-btns">
+      <button class="cam-btn" onclick="startStream()">▶ Stream</button>
+      <button class="cam-btn" onclick="snapshot()">📷 Snap</button>
+      <button class="cam-btn" onclick="toggleFlash()">⚡ Flash</button>
+    </div>
+  </div>
+
+  <!-- Joystick + mode -->
+  <div class="card">
+    <h2>Controls</h2>
+    <div id="joystick-area">
+      <div class="mode-btns">
+        <button class="mode-btn active" id="btn-manual" onclick="setMode('manual')">Manual</button>
+        <button class="mode-btn"        id="btn-auto"   onclick="setMode('auto')">Auto roam</button>
+      </div>
+      <div id="joystick-zone">
+        <div id="stick"></div>
+      </div>
+      <div id="dir-label">—</div>
+    </div>
+  </div>
+
+  <!-- PID tuning -->
+  <div class="card">
+    <h2>PID tuning</h2>
+    <div class="pid-row">
+      <div class="pid-item">
+        <span class="pid-label">Kp</span>
+        <input class="pid-slider" type="range" id="sl-kp" min="0" max="80" step="0.5" value="30" oninput="updatePidLabel('kp',this.value)">
+        <span class="pid-val" id="lbl-kp">30.0</span>
+      </div>
+      <div class="pid-item">
+        <span class="pid-label">Ki</span>
+        <input class="pid-slider" type="range" id="sl-ki" min="0" max="5" step="0.05" value="0.5" oninput="updatePidLabel('ki',this.value)">
+        <span class="pid-val" id="lbl-ki">0.50</span>
+      </div>
+      <div class="pid-item">
+        <span class="pid-label">Kd</span>
+        <input class="pid-slider" type="range" id="sl-kd" min="0" max="10" step="0.1" value="2" oninput="updatePidLabel('kd',this.value)">
+        <span class="pid-val" id="lbl-kd">2.0</span>
+      </div>
+      <button class="pid-send" onclick="sendPID()">Apply PID</button>
+    </div>
+  </div>
+
+  <!-- Alerts -->
+  <div class="card span2">
+    <h2>Alerts &amp; log</h2>
+    <div id="alert-list"><div class="alert-item">Waiting for robot…</div></div>
+  </div>
+
+</div>
+
+<script>
+const API   = 'http://192.168.4.1';
+let camBase = '';
+let flashOn = false;
+let lastCmd = '';
+let lastAlerts = [];
+let connected = false;
+
+// ── Polling ──
+async function poll() {
+  try {
+    const r = await fetch(API + '/api/status', { signal: AbortSignal.timeout(2000) });
+    const d = await r.json();
+    updateUI(d);
+    if (!connected) {
+      connected = true;
+      document.getElementById('status-dot').classList.add('connected');
+      document.getElementById('status-label').textContent = 'Connected';
+    }
+  } catch(e) {
+    connected = false;
+    document.getElementById('status-dot').classList.remove('connected');
+    document.getElementById('status-label').textContent = 'Offline';
+  }
+
+  try {
+    const r = await fetch(API + '/api/alerts', { signal: AbortSignal.timeout(1500) });
+    const arr = await r.json();
+    renderAlerts(arr);
+  } catch(e) {}
+}
+
+function updateUI(d) {
+  // Angle
+  const a = parseFloat(d.angle) || 0;
+  document.getElementById('angle-value').textContent = a.toFixed(2);
+  document.getElementById('angle-value').style.color = Math.abs(a) > 30 ? '#ef4444' : Math.abs(a) > 15 ? '#f59e0b' : '#22c55e';
+
+  // Needle (maps -45..+45 to -90..+90 deg rotation)
+  const clamp = Math.max(-45, Math.min(45, a));
+  const deg   = (clamp / 45) * 90;
+  document.getElementById('needle').setAttribute('transform', `rotate(${deg}, 80, 80)`);
+
+  // Arc dashoffset: 0=full left, 110=center, 220=full right
+  const offset = 110 - (clamp / 45) * 110;
+  document.getElementById('gauge-arc').setAttribute('stroke-dashoffset', offset.toFixed(1));
+  document.getElementById('gauge-arc').setAttribute('stroke', Math.abs(a) > 30 ? '#ef4444' : '#3b82f6');
+
+  document.getElementById('pid-out').textContent   = (parseFloat(d.pidOutput)||0).toFixed(1);
+  document.getElementById('dist-val').textContent  = (d.distance < 999 ? d.distance + ' cm' : '—');
+  document.getElementById('mode-val').textContent  = d.mode || '—';
+  document.getElementById('uptime-val').textContent = fmtTime(d.uptime || 0);
+
+  // Sync PID sliders from robot values (on first connect)
+  if (!connected || (d.kp && Math.abs(d.kp - parseFloat(document.getElementById('sl-kp').value)) > 1)) {
+    if (d.kp) { document.getElementById('sl-kp').value = d.kp; document.getElementById('lbl-kp').textContent = parseFloat(d.kp).toFixed(1); }
+    if (d.ki) { document.getElementById('sl-ki').value = d.ki; document.getElementById('lbl-ki').textContent = parseFloat(d.ki).toFixed(2); }
+    if (d.kd) { document.getElementById('sl-kd').value = d.kd; document.getElementById('lbl-kd').textContent = parseFloat(d.kd).toFixed(1); }
+  }
+
+  // Camera IP
+  if (d.camIP && d.camIP !== camBase) {
+    camBase = 'http://' + d.camIP;
+    document.getElementById('cam-url').textContent = camBase;
+  }
+
+  // Mode buttons
+  document.getElementById('btn-manual').classList.toggle('active', d.mode === 'manual');
+  document.getElementById('btn-auto').classList.toggle('active',   d.mode === 'auto');
+}
+
+function fmtTime(s) {
+  if (s < 60) return s + 's';
+  if (s < 3600) return Math.floor(s/60) + 'm ' + (s%60) + 's';
+  return Math.floor(s/3600) + 'h ' + Math.floor((s%3600)/60) + 'm';
+}
+
+function renderAlerts(arr) {
+  if (JSON.stringify(arr) === JSON.stringify(lastAlerts)) return;
+  lastAlerts = arr;
+  const el = document.getElementById('alert-list');
+  el.innerHTML = '';
+  const recent = arr.slice(-20).reverse();
+  recent.forEach(msg => {
+    const d = document.createElement('div');
+    const lower = msg.toLowerCase();
+    d.className = 'alert-item' +
+      (lower.includes('obstacle') || lower.includes('fallen') ? ' danger' :
+       lower.includes('calibrat') || lower.includes('warning') ? ' warning' : ' info');
+    d.textContent = msg;
+    el.appendChild(d);
+  });
+}
+
+// ── Send command ──
+async function sendCmd(cmd) {
+  if (cmd === lastCmd && cmd !== 'stop') return;
+  lastCmd = cmd;
+  try { await fetch(API + '/api/command?cmd=' + cmd, { signal: AbortSignal.timeout(1000) }); }
+  catch(e) {}
+}
+
+function setMode(m) { sendCmd(m); }
+
+// ── PID ──
+function updatePidLabel(key, v) {
+  const d = { kp: 1, ki: 2, kd: 1 };
+  document.getElementById('lbl-' + key).textContent = parseFloat(v).toFixed(d[key]);
+}
+async function sendPID() {
+  const kp = document.getElementById('sl-kp').value;
+  const ki = document.getElementById('sl-ki').value;
+  const kd = document.getElementById('sl-kd').value;
+  try {
+    await fetch(`${API}/api/pid?kp=${kp}&ki=${ki}&kd=${kd}`, { signal: AbortSignal.timeout(1000) });
+  } catch(e) {}
+}
+
+// ── Camera ──
+function startStream() {
+  if (!camBase) { alert('Camera not connected yet'); return; }
+  const img = document.getElementById('cam-img');
+  img.src = camBase + '/stream?' + Date.now();
+  img.style.display = 'block';
+  document.getElementById('cam-overlay').style.display = 'none';
+}
+function snapshot() {
+  if (!camBase) return;
+  window.open(camBase + '/capture', '_blank');
+}
+function toggleFlash() {
+  if (!camBase) return;
+  flashOn = !flashOn;
+  fetch(camBase + '/flash?state=' + (flashOn ? 'on' : 'off'));
+}
+
+// ── Joystick ──
+const zone  = document.getElementById('joystick-zone');
+const stick = document.getElementById('stick');
+const dirLbl= document.getElementById('dir-label');
+
+let joystickActive = false;
+let jOriginX = 0, jOriginY = 0;
+const JR = 52;  // max radius in px
+
+function getCenter() {
+  const r = zone.getBoundingClientRect();
+  return { x: r.left + r.width/2, y: r.top + r.height/2 };
+}
+
+function jStart(e) {
+  joystickActive = true;
+  zone.style.borderColor = '#3b82f6';
+  const c = getCenter();
+  jOriginX = c.x; jOriginY = c.y;
+  jMove(e);
+}
+
+function jMove(e) {
+  if (!joystickActive) return;
+  e.preventDefault();
+  const pt = e.touches ? e.touches[0] : e;
+  let dx = pt.clientX - jOriginX;
+  let dy = pt.clientY - jOriginY;
+  const dist = Math.sqrt(dx*dx + dy*dy);
+  if (dist > JR) { dx = dx/dist*JR; dy = dy/dist*JR; }
+
+  stick.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+
+  const norm = dist / JR;
+  if (norm < 0.25) {
+    dirLbl.textContent = '—'; sendCmd('stop'); return;
+  }
+
+  const angle = Math.atan2(dy, dx) * 180 / Math.PI;  // -180..180
+  if (angle > -45 && angle <= 45)        { dirLbl.textContent = '→ Right';    sendCmd('right'); }
+  else if (angle > 45 && angle <= 135)   { dirLbl.textContent = '↓ Backward'; sendCmd('backward'); }
+  else if (angle > 135 || angle <= -135) { dirLbl.textContent = '← Left';     sendCmd('left'); }
+  else                                   { dirLbl.textContent = '↑ Forward';  sendCmd('forward'); }
+}
+
+function jEnd() {
+  joystickActive = false;
+  stick.style.transform = 'translate(-50%,-50%)';
+  zone.style.borderColor = '';
+  dirLbl.textContent = '—';
+  sendCmd('stop');
+}
+
+zone.addEventListener('mousedown',  jStart);
+zone.addEventListener('touchstart', jStart, { passive: false });
+document.addEventListener('mousemove',  jMove);
+document.addEventListener('touchmove',  jMove, { passive: false });
+document.addEventListener('mouseup',    jEnd);
+document.addEventListener('touchend',   jEnd);
+
+// ── Keyboard fallback ──
+const keyMap = { ArrowUp:'forward', ArrowDown:'backward', ArrowLeft:'left', ArrowRight:'right' };
+let heldKeys = new Set();
+document.addEventListener('keydown', e => {
+  if (!keyMap[e.key] || heldKeys.has(e.key)) return;
+  heldKeys.add(e.key);
+  sendCmd(keyMap[e.key]);
+  dirLbl.textContent = { forward:'↑ Forward', backward:'↓ Backward', left:'← Left', right:'→ Right' }[keyMap[e.key]];
+});
+document.addEventListener('keyup', e => {
+  heldKeys.delete(e.key);
+  if (heldKeys.size === 0) { sendCmd('stop'); dirLbl.textContent = '—'; }
+});
+
+// ── Start polling ──
+poll();
+setInterval(poll, 500);
+
+// ── Show API url ──
+document.getElementById('api-url').textContent = API;
+</script>
+</body>
+</html>

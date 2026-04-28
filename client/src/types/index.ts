@@ -6,6 +6,7 @@ export interface SensorData {
   fallen: boolean;
   mode: "manual" | "auto";
   command: string;
+  battery: number;
   uptime: number;
   kp: number;
   ki: number;

@@ -12,27 +12,30 @@ export function streamRouter(esp32: Esp32Service): Router {
       return;
     }
     res.json({
-      streamUrl: `http://${esp32.camIp}:81/stream`,
-      captureUrl: `http://${esp32.camIp}/capture`,
+      streamUrl: "/api/stream",
+      captureUrl: "/api/capture",
       directUrl: `http://${esp32.camIp}`,
     });
   });
 
   // Proxy MJPEG stream from ESP32-CAM (fallback if direct doesn't work)
   router.get("/stream", async (req: Request, res: Response) => {
+    console.log(`[Proxy] Initiating stream from: ${esp32.getStreamUrl()}`);
     try {
       const response = await axios.get(esp32.getStreamUrl(), {
         responseType: "stream",
-        timeout: 10000,
       });
-      res.setHeader("Content-Type", response.headers["content-type"] || "multipart/x-mixed-replace;boundary=123456789000000000000987654321");
+      console.log(`[Proxy] Stream source connected. Content-Type: ${response.headers["content-type"]}`);
+      res.setHeader("Content-Type", response.headers["content-type"] || "multipart/x-mixed-replace;boundary=frame");
       res.setHeader("Cache-Control", "no-cache");
       res.setHeader("Access-Control-Allow-Origin", "*");
       response.data.pipe(res);
       req.on("close", () => {
+        console.log("[Proxy] Stream client closed.");
         response.data.destroy();
       });
-    } catch {
+    } catch (err: any) {
+      console.error(`[Proxy] Stream error: ${err.message}`);
       res.status(503).json({ error: "Camera stream unavailable" });
     }
   });
