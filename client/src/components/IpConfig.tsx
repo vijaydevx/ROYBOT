@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { Wifi, Check, Loader2, Shield } from "lucide-react";
 import { useConnection } from "@/lib/ConnectionContext";
+import { SERVER_URL } from "@/lib/socket";
 
 interface IpConfigProps {
   onConnected: () => void;
@@ -17,7 +18,7 @@ export function IpConfig({ onConnected, compact = false, showStatus = true }: Ip
   const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
-    fetch("/api/config")
+    fetch(`${SERVER_URL}/api/config`)
       .then((r) => r.json())
       .then((data) => {
         if (data.configured) {
@@ -35,7 +36,7 @@ export function IpConfig({ onConnected, compact = false, showStatus = true }: Ip
     setErrorMsg("");
     try {
       const cleanIp = (ip: string) => ip.trim().replace(/^https?:\/\//, "").split('/')[0];
-      const res = await fetch("/api/config", {
+      const res = await fetch(`${SERVER_URL}/api/config`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

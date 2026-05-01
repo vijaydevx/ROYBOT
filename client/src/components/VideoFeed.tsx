@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { Camera, Maximize2, Minimize2, RefreshCw, WifiOff, ExternalLink, Settings, X, Scan, ScanEye, Download, Zap } from "lucide-react";
 import { useObjectDetection, Detection } from "@/hooks/useObjectDetection";
-import { getSocket } from "@/lib/socket";
+import { getSocket, SERVER_URL } from "@/lib/socket";
 
 /* ── Camera Settings Overlay ── */
 function CamOverlay({ onClose }: { onClose: () => void }) {
@@ -11,12 +11,12 @@ function CamOverlay({ onClose }: { onClose: () => void }) {
   const [tab, setTab] = useState<"image" | "exposure" | "features">("image");
 
   useEffect(() => {
-    fetch("/api/camera-settings").then(r => r.ok ? r.json() : null).then(setSettings).catch(() => {});
+    fetch(`${SERVER_URL}/api/camera-settings`).then(r => r.ok ? r.json() : null).then(setSettings).catch(() => {});
   }, []);
 
   const set = useCallback(async (v: string, val: number) => {
     setSettings(p => p ? { ...p, [v]: val } : p);
-    await fetch("/api/camera-settings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ variable: v, value: val }) }).catch(() => {});
+    await fetch(`${SERVER_URL}/api/camera-settings`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ variable: v, value: val }) }).catch(() => {});
   }, []);
 
   const RES: Record<number, string> = { 5: "QVGA", 6: "CIF", 7: "HVGA", 8: "VGA", 9: "SVGA", 10: "XGA", 11: "HD", 12: "SXGA", 13: "UXGA" };
@@ -207,7 +207,7 @@ export function VideoFeed() {
 
   const { detections, modelLoaded, loading, fps } = useObjectDetection({
     canvasRef: overlayCanvasRef,
-    captureUrl: "/api/capture",
+    captureUrl: `${SERVER_URL}/api/capture`,
     enabled: detectEnabled && streamLoaded,
     interval: 800,
     confidenceThreshold: 0.45,
@@ -218,7 +218,7 @@ export function VideoFeed() {
     try {
       const newState = !flashOn;
       // Use the proxied backend endpoint /api/led
-      const res = await fetch(`/api/led?state=${newState ? "on" : "off"}`);
+      const res = await fetch(`${SERVER_URL}/api/led?state=${newState ? "on" : "off"}`);
       if (res.ok) setFlashOn(newState);
     } catch {}
   }, [flashOn]);
@@ -226,7 +226,7 @@ export function VideoFeed() {
   useEffect(() => {
     const f = async () => {
       try {
-        const r = await fetch("/api/camera-info");
+        const r = await fetch(`${SERVER_URL}/api/camera-info`);
         if (r.ok) {
           const i = await r.json();
           setCameraInfo(i);
@@ -253,7 +253,7 @@ export function VideoFeed() {
 
   const snap = useCallback(async () => {
     try {
-      const r = await fetch("/api/capture"); 
+      const r = await fetch(`${SERVER_URL}/api/capture`); 
       if (!r.ok) return;
       const b = await r.blob(); const u = URL.createObjectURL(b);
       setScreenshots(p => [u, ...p.slice(0, 9)]);
