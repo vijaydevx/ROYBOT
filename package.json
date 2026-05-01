@@ -1,5 +1,7 @@
 {
   "name": "roybot",
+  "version": "2.0.0",
+  "description": "AI-Powered Self-Balancing Surveillance Robot Tactical Interface",
   "private": true,
   "workspaces": ["server", "client"],
   "scripts": {

@@ -1,69 +1,78 @@
 # ROYBOT 🤖
+> **AI-Powered Self-Balancing Surveillance Robot Tactical Interface**
 
-ROYBOT is a high-performance, self-balancing surveillance robot featuring a real-time tactical dashboard. It combines embedded systems (ESP32), computer vision (ESP32-CAM), and a modern web stack to provide a seamless remote operation experience.
+[![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://roybot-server.vercel.app/)
+[![Next.js](https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
-**🌐 Live Dashboard:** [https://vijaydevx.github.io/ROYBOT/](https://vijaydevx.github.io/ROYBOT/)
+ROYBOT is a high-performance, self-balancing surveillance robot featuring a real-time tactical dashboard. It merges advanced embedded systems (ESP32) with computer vision and a modern web stack to deliver a seamless, low-latency remote operation experience.
 
-![ROYBOT Dashboard Preview](https://via.placeholder.com/1200x600.png?text=ROYBOT+Tactical+Dashboard+Preview)
+**🌐 Live Dashboard:** [https://roybot-server.vercel.app/](https://roybot-server.vercel.app/)
 
-## 🚀 Features
+---
 
-- **Self-Balancing Logic**: Real-time PID control loop for stable upright operation.
-- **Live Video Streaming**: Low-latency MJPEG stream from ESP32-CAM.
-- **Tactical Dashboard**: Modern, industrial dark-themed UI built with React and Tailwind CSS.
-- **Real-time Telemetry**: Live sensor data (Angle, Distance, PID Output, Obstacle Detection).
-- **Remote Control**: Manual movement commands and real-time PID tuning via WebSockets.
-- **Automated Alerts**: Intelligent logging and alert system for obstacle detection and system status.
+## 🚀 Key Features
 
-## 🛠️ Tech Stack
+- **⚖️ Self-Balancing Core**: Precision PID control loop for stable, upright movement.
+- **🎥 Tactical Video Feed**: Ultra-low latency MJPEG stream with integrated AI object detection.
+- **🛡️ Industrial Dashboard**: A premium, dark-mode tactical interface built with Next.js 15 and Tailwind CSS.
+- **📊 Real-time Telemetry**: Live tracking of Tilt Angle, Distance, PID Output, and System Uptime.
+- **🕹️ Mission Control**: Full remote command support via WebSockets including manual drive and live PID tuning.
+- **⚠️ Intelligent Alerts**: Automated system logging and obstacle detection warnings.
 
-### Software
-- **Frontend**: React 18, TypeScript, Tailwind CSS, Lucide Icons.
-- **Backend**: Node.js, Express, Socket.io (Real-time communication).
-- **Firmware**: C++ (Arduino/ESP32) for PID control and sensor integration.
+## 🛠️ Technology Stack
 
-### Hardware
-- **Main Controller**: ESP32 (Handling PID, Motors, Sensors).
-- **Camera Module**: ESP32-CAM (Video Streaming).
-- **Sensors**: MPU6050 (Gyro/Accel), HC-SR04 (Ultrasonic).
-- **Motor Driver**: BTS7960 High-Power Driver.
+### Software Ecosystem
+- **Frontend**: Next.js 15, React 19, TypeScript, Tailwind CSS, Lucide Icons.
+- **Backend**: Node.js, Express, Socket.io for persistent real-time bi-directional communication.
+- **Computer Vision**: TensorFlow.js (COCO-SSD) integrated directly into the browser.
+- **Firmware**: C++ (Arduino/ESP32) optimized for real-time sensor fusion and motor control.
+
+### Hardware Components
+- **Main Brain**: ESP32 Dual-Core MCU.
+- **Vision Unit**: ESP32-CAM (AI-Thinker).
+- **Inertial Sensing**: MPU6050 (6-axis Gyroscope & Accelerometer).
+- **Obstacle Detection**: HC-SR04 Ultrasonic Sensor.
+- **Power Drive**: BTS7960 43A High-Power H-Bridge.
 
 ## 📦 Project Structure
 
 ```bash
-├── client/          # React + Vite Tactical Dashboard
-├── server/          # Node.js + Socket.io Backend Proxy
-├── firmware/        # ESP32 & ESP32-CAM C++ Code
-├── dashboard.html   # Legacy/Stand-alone Dashboard (Optional)
-└── .gitignore       # Project-wide ignore rules
+├── client/          # Next.js 15 Tactical Dashboard (Frontend)
+├── server/          # Node.js + Socket.io Proxy (Backend)
+├── firmware/        # ESP32 & ESP32-CAM Source Code (C++)
+└── vercel.json      # Vercel Deployment Configuration
 ```
 
-## 🔧 Getting Started
+## 🔧 Installation & Deployment
 
-### 1. Firmware Setup
-- Flash the `firmware/ROYBOT_Main.ino` to the main ESP32.
-- Flash the `firmware/ROYBOT_Camera.ino` to the ESP32-CAM.
-- Ensure the ESP32-CAM connects to the `ROYBOT_AP` created by the main board.
+### 1. Firmware Configuration
+- Flash `firmware/ROYBOT_Main.ino` to your primary ESP32.
+- Flash `firmware/ROYBOT_Camera.ino` to the ESP32-CAM.
+- The ESP32-CAM will automatically link to the `ROYBOT_AP` access point.
 
-### 2. Backend Installation
+### 2. Backend Setup (Render/Railway/Local)
 ```bash
 cd server
 npm install
 npm run dev
 ```
+*Note: Ensure `CLIENT_URL` environment variable is set to your frontend domain.*
 
-### 3. Frontend Installation
+### 3. Frontend Setup (Vercel/Local)
 ```bash
 cd client
 npm install
 npm run dev
 ```
+*Note: Set `NEXT_PUBLIC_SERVER_URL` to your backend endpoint.*
 
 ## 📜 License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🤝 Contributing
-Contributions are welcome! Feel free to open an issue or submit a pull request.
+Contributions are what make the open-source community an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
 
 ---
-*Built with ❤️ for the Robotics Community.*
+*Developed with precision for the next generation of autonomous robotics.*
