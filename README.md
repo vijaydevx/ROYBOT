@@ -10,6 +10,13 @@ ROYBOT is a high-performance, self-balancing surveillance robot featuring a real
 
 **🌐 Live Dashboard:** [https://roybot-server.vercel.app/](https://roybot-server.vercel.app/)
 
+## 📸 Gallery
+
+<p align="center">
+  <img src="assets/images/roybot-front.png" alt="ROYBOT front view" width="45%">
+  <img src="assets/images/roybot-rear.png" alt="ROYBOT rear view" width="45%">
+</p>
+
 ---
 
 ## 🚀 Key Features
