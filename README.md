@@ -26,6 +26,14 @@ ROYBOT is a high-performance, self-balancing surveillance robot featuring a real
 
 ---
 
+## 🎥 Demo Video
+
+<p align="center">
+  <video src="assets/videos/roybot-demo.mp4" width="100%" controls></video>
+</p>
+
+---
+
 ## 🚀 Key Features
 
 - **⚖️ Self-Balancing Core**: Precision PID control loop for stable, upright movement.
