@@ -12,9 +12,16 @@ ROYBOT is a high-performance, self-balancing surveillance robot featuring a real
 
 ## 📸 Gallery
 
+### Hardware Build
 <p align="center">
   <img src="assets/images/roybot-front.png" alt="ROYBOT front view" width="45%">
   <img src="assets/images/roybot-rear.png" alt="ROYBOT rear view" width="45%">
+</p>
+
+### Tactical Web Dashboard
+<p align="center">
+  <img src="assets/images/dashboard-login.png" alt="ROYBOT Dashboard Login" width="45%">
+  <img src="assets/images/dashboard-main.png" alt="ROYBOT Dashboard Main" width="45%">
 </p>
 
 ---
