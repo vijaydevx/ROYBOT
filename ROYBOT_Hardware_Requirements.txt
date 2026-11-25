@@ -1,5 +1,11 @@
 # ROYBOT Project Context for AI Coding Assistants
 
+> NOTE: This file is a *specification / prompt* that was written to help AI coding assistants
+> generate firmware. It describes the INTENDED design. It is not evidence that every feature
+> listed here has been implemented or physically tested. The pin mapping below has not been
+> re-verified against a wired robot in this repository audit (see docs/HARDWARE.md).
+> The Wi-Fi password is intentionally shown as a placeholder.
+
 This document contains everything an AI needs to know to generate or modify the C++ firmware (Arduino code) for the "ROYBOT" project.
 
 ## 1. Project Overview
@@ -17,7 +23,7 @@ ROYBOT is a self-balancing surveillance robot. It uses two microcontrollers:
 ## 3. Main ESP32 Network Requirements
 - **WiFi Role**: Must act as an Access Point (AP).
 - **SSID**: `ROYBOT_AP`
-- **Password**: `robot1234`
+- **Password**: `<AP_PASSWORD>` (choose your own; do not commit it)
 - **IP Address**: Should ideally default to `192.168.4.1`.
 - **Web Server**: Must run an HTTP server on port 80.
 
@@ -67,7 +73,7 @@ Returns a JSON array of strings containing log/alert messages.
 ```
 
 ## 5. ESP32-CAM Requirements
-- **WiFi**: Connects to the `ROYBOT_AP` / `robot1234` network created by the Main ESP32.
+- **WiFi**: Connects to the `ROYBOT_AP` network (password: `<AP_PASSWORD>`) created by the Main ESP32.
 - **Web Server**: 
   - Must serve MJPEG video stream on `http://<cam_ip>:81/stream`.
   - Must serve a single JPEG capture on `http://<cam_ip>/capture`.

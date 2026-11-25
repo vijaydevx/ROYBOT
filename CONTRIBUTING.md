@@ -1,52 +1,31 @@
-# Contributing to ROYBOT 🤖
+# Contributing to ROYBOT
 
-First off, thank you for considering contributing to ROYBOT! It's people like you that make ROYBOT such a great tool.
+ROYBOT is a student-built robotics prototype. Issues, questions and suggestions are welcome.
 
-## Code of Conduct
+## Reporting bugs
+Open a GitHub issue and include:
+- what you did and what you expected to happen,
+- which part is affected (firmware, backend, dashboard, hardware),
+- your hardware (ESP32 / ESP32-CAM board variant, power source) when it is hardware related,
+- logs or console output, **with Wi-Fi names, passwords and IP addresses of private networks removed**.
 
-By participating in this project, you are expected to uphold our Code of Conduct:
-- Use welcoming and inclusive language.
-- Be respectful of differing viewpoints and experiences.
-- Gracefully accept constructive criticism.
-- Focus on what is best for the community.
-- Show empathy towards other community members.
+## Suggesting changes
+Open an issue describing the problem and the proposed change before starting large work.
 
-## How Can I Contribute?
+## Pull requests
+1. Fork the repository and branch from `main`.
+2. Keep changes small and focused.
+3. Make sure both packages still build:
+   ```bash
+   npm ci
+   npm run build -w server    # TypeScript compile
+   npm run build -w client    # Next.js production build
+   ```
+4. If you change an API endpoint, the pin mapping or the setup steps, update the README and `docs/`.
+5. Never commit Wi-Fi credentials, tokens or `.env` files. Use the `*.example` files and placeholders.
+6. Do not describe a feature as working unless it was tested; mark it as "not verified" instead.
 
-### Reporting Bugs
-- Use the GitHub Issue Tracker.
-- Describe the bug in detail and provide steps to reproduce.
-- Include information about your hardware (ESP32 version, etc.).
+There is currently no automated test suite and no formatter configuration in this repository.
 
-### Suggesting Enhancements
-- Open a GitHub Issue with the tag `enhancement`.
-- Explain why this feature would be useful.
-
-### Pull Requests
-1. Fork the repo and create your branch from `main`.
-2. If you've added code that should be tested, add tests.
-3. If you've changed APIs, update the documentation.
-4. Ensure the test suite passes.
-5. Make sure your code lints.
-6. Issue that pull request!
-
-## Styleguides
-
-### Git Commit Messages
-- Use the present tense ("Add feature" not "Added feature").
-- Use the imperative mood ("Move cursor to..." not "Moves cursor to...").
-- Limit the first line to 72 characters or less.
-- Reference issues and pull requests liberally after the first line.
-
-### JavaScript/TypeScript
-- We use Prettier for formatting.
-- Follow the existing code style in the `client` and `server` directories.
-
-### Firmware (C++)
-- Use consistent indentation (2 spaces).
-- Comment complex PID logic clearly.
-
-## Questions?
-Feel free to open an issue or reach out to the maintainers.
-
-Thank you for contributing! 🚀
+## Hardware safety
+Changes to motor-control or balancing code can make the robot move unexpectedly. Test with the wheels lifted off the ground first.
