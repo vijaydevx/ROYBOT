@@ -48,3 +48,8 @@ scratch/
 *.hex
 *.elf
 *.bin
+
+# Wi-Fi / credential headers for firmware (never commit real credentials)
+secrets.h
+**/secrets.h
+.env*.local
